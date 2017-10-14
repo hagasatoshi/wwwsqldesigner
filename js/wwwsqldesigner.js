@@ -27,8 +27,7 @@ SQL.Designer = function() {
 	}
 
 	this.flag = 2;
-	this.requestLanguage();
-	this.requestDB();
+	this.localStorageResponse();
 }
 SQL.Designer.prototype = Object.create(SQL.Visual.prototype);
 
@@ -52,63 +51,30 @@ SQL.Designer.prototype.sync = function() {
 	}
 }
 
-SQL.Designer.prototype.requestLanguage = function() { /* get locale file */
-	var lang = this.getOption("locale")
-	var bp = this.getOption("staticpath");
-	var url = bp + "locale/"+lang+".xml";
-	OZ.Request(url, this.languageResponse.bind(this), {method:"get", xml:true});
+SQL.Designer.prototype.localStorageResponse = function(xmlDoc) {
+    if (xmlDoc) {
+        window.DATATYPES = xmlDoc.documentElement;
+    }
+    this.initFromLocalStorage();
 }
 
-SQL.Designer.prototype.languageResponse = function(xmlDoc) {
-	if (xmlDoc) {
-		var strings = xmlDoc.getElementsByTagName("string");
-		for (var i=0;i<strings.length;i++) {
-			var n = strings[i].getAttribute("name");
-			var v = strings[i].firstChild.nodeValue;
-			window.LOCALE[n] = v;
-		}
-	}
-	this.flag--;
-	if (!this.flag) { this.init2(); }
+SQL.Designer.prototype.initFromLocalStorage = function() {
+    this.map = new SQL.Map(this);
+    this.rubberband = new SQL.Rubberband(this);
+    this.tableManager = new SQL.TableManager(this);
+    this.rowManager = new SQL.RowManager(this);
+    this.keyManager = new SQL.KeyManager(this);
+    this.io = new SQL.IO(this);
+    this.options = new SQL.Options(this);
+    this.window = new SQL.Window(this);
+
+    this.sync();
+
+    OZ.$("docs").value = _("docs");
+    this.io.clientlocalload();
+    document.body.style.visibility = "visible";
 }
 
-SQL.Designer.prototype.requestDB = function() { /* get datatypes file */
-	var db = this.getOption("db");
-	var bp = this.getOption("staticpath");
-	var url = bp + "db/"+db+"/datatypes.xml";
-	OZ.Request(url, this.dbResponse.bind(this), {method:"get", xml:true});
-}
-
-SQL.Designer.prototype.dbResponse = function(xmlDoc) {
-	if (xmlDoc) {
-		window.DATATYPES = xmlDoc.documentElement;
-	}
-	this.flag--;
-	if (!this.flag) { this.init2(); }
-}
-
-SQL.Designer.prototype.init2 = function() { /* secondary init, after locale & datatypes were retrieved */
-	this.map = new SQL.Map(this);
-	this.rubberband = new SQL.Rubberband(this);
-	this.tableManager = new SQL.TableManager(this);
-	this.rowManager = new SQL.RowManager(this);
-	this.keyManager = new SQL.KeyManager(this);
-	this.io = new SQL.IO(this);
-	this.options = new SQL.Options(this);
-	this.window = new SQL.Window(this);
-
-	this.sync();
-	
-	OZ.$("docs").value = _("docs");
-
-	var url = window.location.href;
-	var r = url.match(/keyword=([^&]+)/);
-	if (r) {
-		var keyword = r[1];
-		this.io.serverload(false, keyword);
-	}
-	document.body.style.visibility = "visible";
-}
 
 SQL.Designer.prototype.getMaxZ = function() { /* find max zIndex */
 	var max = 0;
