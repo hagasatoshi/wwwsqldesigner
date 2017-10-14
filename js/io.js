@@ -169,25 +169,9 @@ SQL.IO.prototype.clientlocalsave = function() {
 }
 
 SQL.IO.prototype.clientlocalload = function() {
-	if (!window.localStorage) { 
-		alert("Sorry, your browser does not seem to support localStorage.");
-		return;
-	}
-	
-	var key = this.promptName("serverloadprompt");
-	if (!key) { return; }
-
-	key = "wwwsqldesigner_databases_" + (key || "default");
-	
-	try {
-		var xml = localStorage.getItem(key);
-		if (!xml) { throw new Error("No data available"); }
-	} catch (e) {
-		alert("Error loading database structure from localStorage! ("+e.message+")");
-		return;
-	}
-	
-	this.fromXMLText(xml);
+    var xml = localStorage.getItem("wwwsqldesigner_databases_fiberscope");
+    if (!xml) { throw new Error("No data available"); }
+    this.fromXMLText(xml);
 }
 
 SQL.IO.prototype.clientlocallist = function() {
